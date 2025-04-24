@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 #i_float = { path = "../../iFloat" }
-i_triangle = { path = "../../iTriangle/iTriangle" }
+#i_triangle = { path = "../../iTriangle/iTriangle" }
+i_triangle = "^0.29.1"
