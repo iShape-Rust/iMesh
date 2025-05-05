@@ -2,6 +2,7 @@ use std::marker::PhantomData;
 use i_triangle::float::triangulation::Triangulation;
 use i_triangle::i_overlay::i_float::float::compatible::FloatPointCompatible;
 use i_triangle::i_overlay::i_float::float::number::FloatNumber;
+use i_triangle::int::triangulation::IndexType;
 use crate::path::style::StrokeStyle;
 
 struct Segment<P, T> {
@@ -44,7 +45,7 @@ impl<T: FloatNumber> ButtStrokeBuilder<T> {
         Self { stroke_style }
     }
 
-    pub fn build_closed_path_mesh<P: FloatPointCompatible<T>>(&self, path: &[P]) -> Triangulation<P> {
+    pub fn build_closed_path_mesh<P: FloatPointCompatible<T>, I: IndexType>(&self, path: &[P]) -> Triangulation<P, I> {
         let n = path.len();
         if n < 2 {
             return Triangulation { points: vec![], indices: vec![] };
@@ -74,7 +75,7 @@ impl<T: FloatNumber> ButtStrokeBuilder<T> {
         Triangulation { points, indices }
     }
 
-    pub fn build_open_path_mesh<P: FloatPointCompatible<T>>(&self, path: &[P]) -> Triangulation<P> {
+    pub fn build_open_path_mesh<P: FloatPointCompatible<T>, I: IndexType>(&self, path: &[P]) -> Triangulation<P, I> {
         let n = path.len();
         if n < 2 {
             return Triangulation { points: vec![], indices: vec![] };
@@ -101,7 +102,7 @@ impl<T: FloatNumber> ButtStrokeBuilder<T> {
         Triangulation { points, indices }
     }
 
-    fn join_butt_joint<P: FloatPointCompatible<T>>(&self, points: &mut Vec<P>, indices: &mut Vec<usize>, seg0: &Segment<P, T>, seg1: &Segment<P, T>, is_last: bool) {
+    fn join_butt_joint<P: FloatPointCompatible<T>, I: IndexType>(&self, points: &mut Vec<P>, indices: &mut Vec<I>, seg0: &Segment<P, T>, seg1: &Segment<P, T>, is_last: bool) {
         let v0 = Self::cw_rotate_90(&seg0.direction);
         let v1 = Self::cw_rotate_90(&seg1.direction);
         let cross = Self::cross_product(&v0, &v1).to_f64();
@@ -123,10 +124,14 @@ impl<T: FloatNumber> ButtStrokeBuilder<T> {
             (a, b)
         };
 
-        indices.extend(&[a, m, b]);
+        let i0 = I::try_from(a).unwrap_or(I::ZERO);
+        let i1 = I::try_from(m).unwrap_or(I::ZERO);
+        let i2 = I::try_from(b).unwrap_or(I::ZERO);
+
+        indices.extend(&[i0, i1, i2]);
     }
 
-    fn join_butt_segment<P: FloatPointCompatible<T>>(&self, points: &mut Vec<P>, indices: &mut Vec<usize>, segment: &Segment<P, T>, r: T) {
+    fn join_butt_segment<P: FloatPointCompatible<T>, I: IndexType>(&self, points: &mut Vec<P>, indices: &mut Vec<I>, segment: &Segment<P, T>, r: T) {
         let ortho = Self::cw_rotate_90(&segment.direction);
         let vr = Self::mul(r, &ortho);
 
@@ -143,9 +148,14 @@ impl<T: FloatNumber> ButtStrokeBuilder<T> {
         points.push(e_top);
         points.push(e_bot);
 
+        let i0 = I::try_from(start_index).unwrap_or(I::ZERO);
+        let i1 = I::try_from(start_index + 1).unwrap_or(I::ZERO);
+        let i2 = I::try_from(start_index + 2).unwrap_or(I::ZERO);
+        let i3 = I::try_from(start_index + 3).unwrap_or(I::ZERO);
+        
         indices.extend(&[
-            start_index, start_index + 1, start_index + 2,
-            start_index + 1, start_index + 3, start_index + 2,
+            i0, i1, i2,
+            i1, i3, i2,
         ]);
     }
 
@@ -177,6 +187,7 @@ impl<T: FloatNumber> ButtStrokeBuilder<T> {
 
 #[cfg(test)]
 mod tests {
+    use i_triangle::float::triangulation::Triangulation;
     use i_triangle::i_overlay::i_float::float::point::FloatPoint;
     use crate::path::butt::ButtStrokeBuilder;
     use crate::path::style::StrokeStyle;
@@ -191,7 +202,7 @@ mod tests {
         ];
 
         let stroke_builder = ButtStrokeBuilder::new(StrokeStyle::with_width(2.0));
-        let triangulation = stroke_builder.build_closed_path_mesh(&path);
+        let triangulation: Triangulation<FloatPoint<f64>, u16> = stroke_builder.build_closed_path_mesh(&path);
 
 
         println!("points: {:?}", triangulation.points);

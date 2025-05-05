@@ -1,6 +1,6 @@
 [package]
 name = "i_mesh"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 authors = ["Nail Sharipov <nailxsharipov@gmail.com>"]
 description = "Mesh generation library"
@@ -9,5 +9,5 @@ repository = "https://github.com/iShape-Rust/iMesh"
 
 [dependencies]
 #i_float = { path = "../../iFloat" }
-#i_triangle = { path = "../../iTriangle/iTriangle" }
-i_triangle = "^0.29.1"
+i_triangle = { path = "../../iTriangle/iTriangle" }
+#i_triangle = "^0.29.1"
