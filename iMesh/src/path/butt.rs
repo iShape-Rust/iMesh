@@ -1,4 +1,6 @@
-use std::marker::PhantomData;
+use alloc::vec;
+use alloc::vec::Vec;
+use core::marker::PhantomData;
 use i_triangle::float::triangulation::Triangulation;
 use i_triangle::i_overlay::i_float::float::compatible::FloatPointCompatible;
 use i_triangle::i_overlay::i_float::float::number::FloatNumber;
@@ -203,9 +205,5 @@ mod tests {
 
         let stroke_builder = ButtStrokeBuilder::new(StrokeStyle::with_width(2.0));
         let triangulation: Triangulation<FloatPoint<f64>, u16> = stroke_builder.build_closed_path_mesh(&path);
-
-
-        println!("points: {:?}", triangulation.points);
-        println!("indices: {:?}", triangulation.indices);
     }
 }
